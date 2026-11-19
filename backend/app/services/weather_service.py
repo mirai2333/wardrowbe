@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -7,6 +8,14 @@ import httpx
 import redis.asyncio as aioredis
 
 from app.config import get_settings
+from app.services.qweather_client import (
+    QWeatherClient,
+    QWeatherError,
+    condition_for_icon,
+    is_night_icon,
+    precipitation_chance_for_icon,
+    wmo_code_for_icon,
+)
 from app.utils.redis_lock import get_redis
 
 logger = logging.getLogger(__name__)
@@ -70,6 +79,14 @@ class DailyForecast:
     uv_index: float | None = None
 
 
+# QWeather's free plan has a small daily quota, and the phone setup this deployment targets has
+# no Redis (REDIS_URL points at 127.0.0.1:6379), which would otherwise mean three upstream calls
+# on every dashboard render. The in-process cache is a fallback only and is never consulted for
+# open-meteo, so the provider switch does not change the existing cache tests.
+QWEATHER_MEMORY_CACHE_TTL = 600.0
+_QWEATHER_MEMORY_CACHE: dict[str, tuple[float, WeatherData]] = {}
+
+
 # WMO Weather interpretation codes
 # https://open-meteo.com/en/docs
 WMO_CODES = {
@@ -106,15 +123,55 @@ WMO_CODES = {
 
 CACHE_TTL = 3600  # 1 hour
 CACHE_PREFIX = "weather:"
+QWEATHER_CACHE_PREFIX = "weather:qweather:"
 
 GEOCODE_CACHE_TTL = 60 * 60 * 24 * 30  # 30 days; geocoding a place name rarely changes
 GEOCODE_NEGATIVE_CACHE_TTL = 3600  # 1 hour for not-found results; avoids hammering Nominatim
 GEOCODE_CACHE_PREFIX = "geocode:"
 
 
+# QWeather returns every numeric field as a string, and an occasional field is missing. These
+# helpers keep the conversion noise out of the assembly code below.
+def _to_float(value: object, default: float) -> float:
+    try:
+        return float(str(value))
+    except (TypeError, ValueError):
+        return default
+
+
+def _to_float_or_none(value: object) -> float | None:
+    try:
+        return float(str(value))
+    except (TypeError, ValueError):
+        return None
+
+
+def _to_int(value: object, default: int) -> int:
+    try:
+        return int(float(str(value)))
+    except (TypeError, ValueError):
+        return default
+
+
+def _to_int_or_none(value: object) -> int | None:
+    try:
+        return int(float(str(value)))
+    except (TypeError, ValueError):
+        return None
+
+
 class WeatherService:
     def __init__(self):
         self.base_url = settings.openmeteo_url
+        self.provider = (settings.weather_provider or "open-meteo").strip().lower()
+        self.qweather = (
+            QWeatherClient(
+                api_key=settings.qweather_api_key or "",
+                api_host=settings.qweather_api_host,
+            )
+            if self.provider == "qweather"
+            else None
+        )
 
     async def geocode_location_name(
         self, location_name: str
@@ -221,13 +278,14 @@ class WeatherService:
             logger.debug(f"Redis unavailable for geocode cache write ({query!r})")
 
     @staticmethod
-    def _cache_key(lat: float, lon: float) -> str:
-        return f"{CACHE_PREFIX}{round(lat, 2)},{round(lon, 2)}"
+    def _cache_key(lat: float, lon: float, provider: str = "open-meteo") -> str:
+        prefix = QWEATHER_CACHE_PREFIX if provider == "qweather" else CACHE_PREFIX
+        return f"{prefix}{round(lat, 2)},{round(lon, 2)}"
 
     async def _cache_get(self, lat: float, lon: float) -> WeatherData | None:
         try:
             redis = await get_redis()
-            raw = await redis.get(self._cache_key(lat, lon))
+            raw = await redis.get(self._cache_key(lat, lon, self.provider))
         except aioredis.RedisError:
             logger.debug(f"Redis unavailable for weather cache read ({lat}, {lon})")
             return None
@@ -242,7 +300,7 @@ class WeatherService:
         try:
             redis = await get_redis()
             await redis.set(
-                self._cache_key(lat, lon),
+                self._cache_key(lat, lon, self.provider),
                 json.dumps(data.to_dict()),
                 ex=CACHE_TTL,
             )
@@ -279,6 +337,9 @@ class WeatherService:
             WeatherServiceError: If API request fails
         """
         self._validate_coordinates(latitude, longitude)
+
+        if self.provider == "qweather":
+            return await self._qweather_current_weather(latitude, longitude, use_cache)
 
         if use_cache:
             cached = await self._cache_get(latitude, longitude)
@@ -358,6 +419,163 @@ class WeatherService:
 
         return weather
 
+    async def _qweather_current_weather(
+        self, latitude: float, longitude: float, use_cache: bool = True
+    ) -> WeatherData:
+        """Current conditions from QWeather, assembled into the same WeatherData shape."""
+        self._validate_coordinates(latitude, longitude)
+
+        if use_cache:
+            cached = await self._cache_get(latitude, longitude)
+            if cached:
+                return cached
+            memory = self._qweather_memory_get(latitude, longitude)
+            if memory:
+                return memory
+
+        if self.qweather is None:
+            raise WeatherServiceError("QWeather provider is not configured")
+
+        try:
+            now = await self.qweather.fetch_now(latitude, longitude)
+        except QWeatherError as e:
+            raise WeatherServiceError(f"Failed to fetch QWeather current weather: {e}") from None
+
+        hourly: list[dict] = []
+        try:
+            hourly = await self.qweather.fetch_hourly(latitude, longitude)
+        except QWeatherError as e:
+            logger.warning(
+                f"QWeather hourly data unavailable for ({latitude}, {longitude}): {e}"
+            )
+
+        daily: list[dict] = []
+        try:
+            daily = await self.qweather.fetch_daily(latitude, longitude, days=1)
+        except QWeatherError as e:
+            logger.warning(
+                f"QWeather daily data unavailable for ({latitude}, {longitude}): {e}"
+            )
+
+        today = daily[0] if daily else {}
+        temperature = _to_float(now.get("temp"), 0.0)
+        icon = now.get("icon")
+
+        weather = WeatherData(
+            temperature=temperature,
+            feels_like=_to_float(now.get("feelsLike"), temperature),
+            humidity=_to_int(now.get("humidity"), 0),
+            precipitation_chance=_to_int(hourly[0].get("pop"), 0) if hourly else 0,
+            precipitation_mm=_to_float(now.get("precip"), 0.0),
+            wind_speed=_to_float(now.get("windSpeed"), 0.0),
+            condition=condition_for_icon(icon),
+            condition_code=wmo_code_for_icon(icon),
+            is_day=not is_night_icon(icon),
+            uv_index=_to_float(today.get("uvIndex"), 0.0),
+            timestamp=datetime.utcnow(),
+            temp_min=_to_float_or_none(today.get("tempMin")),
+            temp_max=_to_float_or_none(today.get("tempMax")),
+        )
+
+        window = self._qweather_wearing_window(now, hourly)
+        if window:
+            weather.window_min, weather.window_max = window
+
+        await self._cache_set(latitude, longitude, weather)
+        self._qweather_memory_set(latitude, longitude, weather)
+
+        logger.info(
+            f"QWeather fetched for ({latitude}, {longitude}): "
+            f"{weather.temperature}°C (day {weather.temp_min}-{weather.temp_max}°C, "
+            f"ahead {weather.window_min}-{weather.window_max}°C), {weather.condition}"
+        )
+
+        return weather
+
+    @staticmethod
+    def _qweather_wearing_window(
+        now: dict, hourly: list[dict]
+    ) -> tuple[float, float] | None:
+        """Temperature range from now through the evening, mirroring _wearing_window."""
+        if not hourly:
+            return None
+        try:
+            reference = datetime.fromisoformat(str(now.get("obsTime")))
+        except ValueError:
+            return None
+
+        temperatures: list[float] = []
+        for slot in hourly:
+            try:
+                slot_time = datetime.fromisoformat(str(slot.get("fxTime")))
+            except ValueError:
+                continue
+            if slot_time.date() != reference.date() or slot_time.hour > WEARING_DAY_END_HOUR:
+                continue
+            temp = _to_float_or_none(slot.get("temp"))
+            if temp is not None:
+                temperatures.append(temp)
+
+        if len(temperatures) < MIN_WINDOW_HOURS:
+            return None
+
+        current = _to_float_or_none(now.get("temp"))
+        if current is not None:
+            temperatures.append(current)
+        return min(temperatures), max(temperatures)
+
+    @staticmethod
+    def _qweather_memory_get(lat: float, lon: float) -> WeatherData | None:
+        key = WeatherService._cache_key(lat, lon, "qweather")
+        entry = _QWEATHER_MEMORY_CACHE.get(key)
+        if entry is None:
+            return None
+        expires_at, data = entry
+        if time.monotonic() >= expires_at:
+            _QWEATHER_MEMORY_CACHE.pop(key, None)
+            return None
+        return data
+
+    @staticmethod
+    def _qweather_memory_set(lat: float, lon: float, data: WeatherData) -> None:
+        key = WeatherService._cache_key(lat, lon, "qweather")
+        _QWEATHER_MEMORY_CACHE[key] = (
+            time.monotonic() + QWEATHER_MEMORY_CACHE_TTL,
+            data,
+        )
+
+    async def _qweather_daily_forecast(
+        self, latitude: float, longitude: float, days: int
+    ) -> list[DailyForecast]:
+        if self.qweather is None:
+            raise WeatherServiceError("QWeather provider is not configured")
+
+        try:
+            raw = await self.qweather.fetch_daily(latitude, longitude, days)
+        except QWeatherError as e:
+            raise WeatherServiceError(f"Failed to fetch QWeather forecast: {e}") from None
+
+        forecasts: list[DailyForecast] = []
+        for day in raw[:days]:
+            date = str(day.get("fxDate") or "")
+            if not date:
+                continue
+            icon = day.get("iconDay")
+            forecasts.append(
+                DailyForecast(
+                    date=date,
+                    temp_max=_to_float(day.get("tempMax"), 0.0),
+                    temp_min=_to_float(day.get("tempMin"), 0.0),
+                    precipitation_chance=precipitation_chance_for_icon(icon),
+                    condition=condition_for_icon(icon),
+                    condition_code=wmo_code_for_icon(icon),
+                    humidity=_to_int_or_none(day.get("humidity")),
+                    wind_speed=_to_float_or_none(day.get("windSpeedDay")),
+                    uv_index=_to_float_or_none(day.get("uvIndex")),
+                )
+            )
+        return forecasts
+
     @staticmethod
     def _wearing_window(current: dict, hourly: dict) -> tuple[float, float] | None:
         current_time = current.get("time")
@@ -407,6 +625,9 @@ class WeatherService:
             WeatherServiceError: If API request fails
         """
         self._validate_coordinates(latitude, longitude)
+
+        if self.provider == "qweather":
+            return await self._qweather_daily_forecast(latitude, longitude, days)
 
         params = {
             "latitude": latitude,
@@ -510,6 +731,16 @@ class WeatherService:
 
     async def check_health(self) -> dict:
         """Check if the weather service is available."""
+        if self.provider == "qweather":
+            if self.qweather is None or not self.qweather.configured:
+                return {"status": "unhealthy", "error": "QWeather API key is not configured"}
+            try:
+                # Any inhabited place works as a probe; Beijing always has a reading.
+                await self.qweather.fetch_now(39.9042, 116.4074)
+                return {"status": "healthy", "provider": "qweather"}
+            except QWeatherError as e:
+                return {"status": "unhealthy", "error": str(e)}
+
         try:
             async with httpx.AsyncClient(timeout=5.0, follow_redirects=True) as client:
                 # Simple request to check API availability

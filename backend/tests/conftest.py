@@ -10,6 +10,9 @@ os.environ["STORAGE_PATH"] = "/tmp/wardrobe_test"
 os.environ.pop("OIDC_ISSUER_URL", None)
 os.environ.pop("OIDC_CLIENT_ID", None)
 os.environ.pop("OIDC_CLIENT_SECRET", None)
+# The weather tests parse the open-meteo payloads; a deployment .env that selects qweather must
+# not redirect them at the live provider.
+os.environ["WEATHER_PROVIDER"] = "open-meteo"
 
 from collections.abc import AsyncGenerator
 from typing import Any

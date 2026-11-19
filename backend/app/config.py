@@ -131,8 +131,19 @@ class Settings(BaseSettings):
     ai_retry_cooldown_seconds: int = Field(default=120, ge=0)
 
     # Weather
+    # open-meteo works everywhere but its host is slow to reach from mainland China, where the
+    # dashboard weather card then times out. qweather is a domestic provider with a small free
+    # quota, so its responses are also cached in-process (see weather_service).
+    weather_provider: Literal["open-meteo", "qweather"] = "open-meteo"
     openmeteo_url: str = Field(default="https://api.open-meteo.com/v1")
     geocoding_user_agent: str | None = Field(default=None)
+    qweather_api_key: str | None = Field(default=None)
+    qweather_api_host: str = Field(default="devapi.qweather.com")
+
+    @field_validator("weather_provider", mode="before")
+    @classmethod
+    def lowercase_weather_provider(cls, v: object) -> object:
+        return v.strip().lower() if isinstance(v, str) else v
 
     # Notifications - default ntfy channel (used when user has none configured)
     ntfy_server: str | None = None
