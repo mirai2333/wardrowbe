@@ -54,7 +54,8 @@
     "locationNotSet": "Localisation non définie",
     "rainChance": "{percent}% de chance de pluie",
     "setLocation": "Définir la localisation",
-    "title": "Météo du jour"
+    "title": "Météo du jour",
+    "unavailable": "Météo momentanément indisponible"
   },
   "weeklySummary": {
     "accepted": "acceptées",

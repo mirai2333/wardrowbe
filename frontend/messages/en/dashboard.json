@@ -54,7 +54,8 @@
     "locationNotSet": "Location not set",
     "rainChance": "{percent}% chance of rain",
     "setLocation": "Set Location",
-    "title": "Today's Weather"
+    "title": "Today's Weather",
+    "unavailable": "Weather is temporarily unavailable"
   },
   "weeklySummary": {
     "accepted": "accepted",

@@ -54,7 +54,8 @@
     "locationNotSet": "Posizione non impostata",
     "rainChance": "{percent}% di probabilità di pioggia",
     "setLocation": "Imposta posizione",
-    "title": "Meteo di oggi"
+    "title": "Meteo di oggi",
+    "unavailable": "Meteo temporaneamente non disponibile"
   },
   "weeklySummary": {
     "accepted": "accettati",

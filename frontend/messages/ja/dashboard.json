@@ -54,7 +54,8 @@
     "locationNotSet": "位置情報が未設定",
     "rainChance": "降水確率 {percent}%",
     "setLocation": "位置を設定",
-    "title": "今日の天気"
+    "title": "今日の天気",
+    "unavailable": "天気情報を一時的に取得できません"
   },
   "weeklySummary": {
     "accepted": "承認済み",

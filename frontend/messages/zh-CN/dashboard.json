@@ -54,7 +54,8 @@
     "locationNotSet": "未设置位置",
     "rainChance": "{percent}% 降雨概率",
     "setLocation": "设置位置",
-    "title": "今日天气"
+    "title": "今日天气",
+    "unavailable": "天气服务暂时不可用"
   },
   "weeklySummary": {
     "accepted": "已接受",

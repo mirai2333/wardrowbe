@@ -54,7 +54,8 @@
     "locationNotSet": "Standort nicht festgelegt",
     "rainChance": "{percent} % Regenwahrscheinlichkeit",
     "setLocation": "Standort festlegen",
-    "title": "Heutiges Wetter"
+    "title": "Heutiges Wetter",
+    "unavailable": "Wetter derzeit nicht verfügbar"
   },
   "weeklySummary": {
     "accepted": "angenommen",

@@ -54,7 +54,8 @@
     "locationNotSet": "尚未設定位置",
     "rainChance": "降雨機率 {percent}%",
     "setLocation": "設定位置",
-    "title": "今日天氣"
+    "title": "今日天氣",
+    "unavailable": "天氣服務暫時無法使用"
   },
   "weeklySummary": {
     "accepted": "已接受",

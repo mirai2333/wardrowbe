@@ -45,9 +45,10 @@ import { useUserTimezone } from '@/lib/hooks/use-user';
 import { useAiUiEnabled } from '@/lib/hooks/use-features';
 
 function WeatherCard() {
-  const { data: weather, isLoading, isError } = useWeather();
+  const { data: weather, isLoading, isError, error, refetch } = useWeather();
   const { data: prefs } = usePreferences();
   const t = useTranslations('dashboard');
+  const tc = useTranslations('common');
   const conditionLabel = useWeatherConditionLabel();
   const aiUiEnabled = useAiUiEnabled();
   const unit: TempUnit = prefs?.temperature_unit === 'fahrenheit' ? 'fahrenheit' : 'celsius';
@@ -70,6 +71,12 @@ function WeatherCard() {
   }
 
   if (isError || !weather) {
+    // A 400 is the backend saying the account has no saved location yet. Anything else is a
+    // failing weather provider, and pointing the user at the location settings then would send
+    // them to fix something that is not broken.
+    const status = (error as { status?: number } | null)?.status;
+    const locationMissing = !weather && status === 400;
+
     return (
       <Card>
         <CardHeader className="pb-2">
@@ -80,11 +87,17 @@ function WeatherCard() {
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground mb-3">
-            {t('weather.locationNotSet')}
+            {locationMissing ? t('weather.locationNotSet') : t('weather.unavailable')}
           </p>
-          <Button size="sm" variant="outline" asChild>
-            <Link href="/dashboard/settings">{t('weather.setLocation')}</Link>
-          </Button>
+          {locationMissing ? (
+            <Button size="sm" variant="outline" asChild>
+              <Link href="/dashboard/settings">{t('weather.setLocation')}</Link>
+            </Button>
+          ) : (
+            <Button size="sm" variant="outline" onClick={() => refetch()}>
+              {tc('retry')}
+            </Button>
+          )}
         </CardContent>
       </Card>
     );
