@@ -780,6 +780,16 @@ export default function WardrobePage() {
                 </span>
               )}
             </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+              onClick={() => setGroupDialogOpen(true)}
+              aria-label={t('groups.manage')}
+              title={t('groups.manage')}
+            >
+              <Layers className="h-4 w-4" />
+            </Button>
           </div>
         </div>
 
@@ -826,16 +836,6 @@ export default function WardrobePage() {
                 ))}
               </SelectContent>
             </Select>
-
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-8 text-xs gap-1.5"
-              onClick={() => setGroupDialogOpen(true)}
-            >
-              <Layers className="h-3.5 w-3.5" />
-              {t('groups.manage')}
-            </Button>
 
             <Select
               value={String(pageSize)}
