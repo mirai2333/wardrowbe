@@ -147,6 +147,30 @@
     "noItemsFound": "Nessun capo trovato con i filtri selezionati."
   },
   "favorites": "Preferiti",
+  "groups": {
+    "title": "Gruppi",
+    "description": "Raggruppa i vestiti una volta e limita i suggerimenti a un gruppo.",
+    "create": "Nuovo gruppo",
+    "edit": "Modifica",
+    "delete": "Elimina",
+    "namePlaceholder": "es. Lavoro",
+    "itemCount": "{count} capi",
+    "selectedCount": "{count} selezionati",
+    "empty": "Ancora nessun gruppo",
+    "all": "Tutti i vestiti",
+    "manage": "Gestisci gruppi",
+    "editTitle": "Modifica gruppo",
+    "createTitle": "Nuovo gruppo",
+    "editorDescription": "Dai un nome al gruppo e scegli i capi che contiene.",
+    "save": "Salva",
+    "cancel": "Annulla",
+    "saved": "Gruppo salvato",
+    "saveFailed": "Impossibile salvare il gruppo",
+    "deleted": "Gruppo eliminato",
+    "deleteFailed": "Impossibile eliminare il gruppo",
+    "deleteConfirm": "Eliminare \"{name}\"?",
+    "loadMembersFailed": "Impossibile caricare i capi del gruppo"
+  },
   "itemCount": "{count, plural, one {# capo nel tuo guardaroba} other {# capi nel tuo guardaroba}}",
   "itemDetail": {
     "actions": {

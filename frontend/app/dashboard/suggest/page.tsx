@@ -48,10 +48,18 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { ItemPicker } from '@/components/shared/item-picker';
 import { OccasionChips } from '@/components/shared/occasion-chips';
 import { useOccasionLabel, useWeatherConditionLabel, useTypeLabel } from '@/lib/hooks/use-translated-constants';
 import { useItem } from '@/lib/hooks/use-items';
+import { useGroups } from '@/lib/hooks/use-groups';
 import { api, ApiError } from '@/lib/api';
 import { applySessionToken } from '@/lib/hooks/use-session-token';
 import { ClothingTypeValue, CurrentWeather, Item, Outfit, SuggestRequest } from '@/lib/types';
@@ -596,6 +604,9 @@ function SuggestContent() {
   const [occasionInitialized, setOccasionInitialized] = useState(false);
   const [weatherOverride, setWeatherOverride] = useState<WeatherOverride | null>(null);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
+  const { data: groups } = useGroups();
+  const selectedGroup = groups?.find((group) => group.id === selectedGroupId) ?? null;
   const [isItemPickerOpen, setIsItemPickerOpen] = useState(false);
   const [filterType, setFilterType] = useState<string | undefined>(undefined);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -630,6 +641,10 @@ function SuggestContent() {
         occasion: selectedOccasion,
         include_items: selectedItem ? [selectedItem.id] : [],
       };
+
+      if (selectedGroupId) {
+        request.group_id = selectedGroupId;
+      }
 
       if (weatherOverride) {
         request.weather_override = {
@@ -842,6 +857,52 @@ function SuggestContent() {
                       </Button>
                     </div>
                   </div>
+                )}
+              </div>
+
+              {/* Wardrobe range (group) */}
+              <div className="space-y-2 pt-1 border-t">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="space-y-0.5">
+                    <h2 className="font-semibold text-sm sm:text-base flex items-center gap-2">
+                      <Layers className="h-4 w-4 text-primary" />
+                      {t('scope.title')}
+                    </h2>
+                    <p className="text-xs text-muted-foreground">
+                      {t('scope.subtitle')}
+                    </p>
+                  </div>
+                  <Select
+                    value={selectedGroupId ?? 'all'}
+                    onValueChange={(value) => setSelectedGroupId(value === 'all' ? null : value)}
+                  >
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{t('scope.none')}</SelectItem>
+                      {(groups ?? []).map((group) => (
+                        <SelectItem
+                          key={group.id}
+                          value={group.id}
+                          disabled={group.item_count === 0}
+                        >
+                          {group.name} ({group.item_count})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {selectedGroup && (
+                  <p className="text-xs text-muted-foreground">
+                    {t('scope.active', {
+                      name: selectedGroup.name,
+                      count: selectedGroup.item_count,
+                    })}
+                  </p>
+                )}
+                {(!groups || groups.length === 0) && (
+                  <p className="text-xs text-muted-foreground">{t('scope.empty')}</p>
                 )}
               </div>
 

@@ -77,6 +77,13 @@
     "title": "{occasion} 코디",
     "viewItemDetails": "아이템 상세보기"
   },
+  "scope": {
+    "title": "옷장 범위",
+    "subtitle": "그룹 중 하나의 옷으로만 코디합니다",
+    "none": "모든 옷",
+    "active": "\"{name}\"의 {count}개만 사용",
+    "empty": "그룹이 없습니다. 옷장에서 만들어 주세요"
+  },
   "startOver": "처음부터 다시",
   "subtitle": "오늘 하루에 딱 맞는 코디를 찾아볼까요",
   "tip": "팁:",

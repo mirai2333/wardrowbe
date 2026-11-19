@@ -77,6 +77,13 @@
     "title": "{occasion}コーデ",
     "viewItemDetails": "アイテム詳細を見る"
   },
+  "scope": {
+    "title": "ワードローブの範囲",
+    "subtitle": "いずれかのグループの服だけでコーデします",
+    "none": "すべての服",
+    "active": "「{name}」の {count} 点のみ",
+    "empty": "グループがありません。ワードローブで作成してください"
+  },
   "startOver": "最初から",
   "subtitle": "今日にぴったりのコーデを見つけましょう",
   "tip": "ヒント：",

@@ -77,6 +77,13 @@
     "title": "Outfit {occasion}",
     "viewItemDetails": "Vedi dettagli capo"
   },
+  "scope": {
+    "title": "Ambito del guardaroba",
+    "subtitle": "Combina solo i vestiti di uno dei tuoi gruppi",
+    "none": "Tutti i vestiti",
+    "active": "Solo vestiti di \"{name}\" ({count})",
+    "empty": "Ancora nessun gruppo: creane uno nel guardaroba"
+  },
   "startOver": "Ricomincia",
   "subtitle": "Troviamo l'outfit perfetto per la tua giornata",
   "tip": "Suggerimento:",

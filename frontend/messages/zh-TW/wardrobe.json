@@ -147,6 +147,30 @@
     "noItemsFound": "找不到符合篩選條件的單品。"
   },
   "favorites": "收藏",
+  "groups": {
+    "title": "分組",
+    "description": "先把衣服分好組，推薦時只在這個組裡搭配。",
+    "create": "新增分組",
+    "edit": "編輯",
+    "delete": "刪除",
+    "namePlaceholder": "例如：通勤",
+    "itemCount": "{count} 件",
+    "selectedCount": "已選 {count} 件",
+    "empty": "還沒有分組",
+    "all": "全部衣服",
+    "manage": "管理分組",
+    "editTitle": "編輯分組",
+    "createTitle": "新增分組",
+    "editorDescription": "給分組取個名字，並挑選組裡的衣服。",
+    "save": "儲存",
+    "cancel": "取消",
+    "saved": "分組已儲存",
+    "saveFailed": "儲存分組失敗",
+    "deleted": "分組已刪除",
+    "deleteFailed": "刪除分組失敗",
+    "deleteConfirm": "刪除「{name}」？",
+    "loadMembersFailed": "載入分組裡的衣服失敗"
+  },
   "itemCount": "{count, plural, one {衣櫥中有 # 件單品} other {衣櫥中有 # 件單品}}",
   "itemDetail": {
     "actions": {

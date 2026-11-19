@@ -77,6 +77,13 @@
     "title": "{occasion} Outfit",
     "viewItemDetails": "View item details"
   },
+  "scope": {
+    "title": "Wardrobe range",
+    "subtitle": "Only combine clothes from one of your groups",
+    "none": "All clothes",
+    "active": "Only clothes in \"{name}\" ({count})",
+    "empty": "No groups yet — create one in the wardrobe"
+  },
   "startOver": "Start over",
   "subtitle": "Let's find the perfect outfit for your day",
   "tip": "Tip:",

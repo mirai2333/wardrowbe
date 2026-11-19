@@ -77,6 +77,13 @@
     "title": "{occasion}-Outfit",
     "viewItemDetails": "Stückdetails ansehen"
   },
+  "scope": {
+    "title": "Garderobenumfang",
+    "subtitle": "Nur Kleidung aus einer deiner Gruppen kombinieren",
+    "none": "Alle Kleidung",
+    "active": "Nur Kleidung aus \"{name}\" ({count})",
+    "empty": "Noch keine Gruppen – lege eine in der Garderobe an"
+  },
   "startOver": "Neu beginnen",
   "subtitle": "Finden wir das perfekte Outfit für deinen Tag",
   "tip": "Tipp:",

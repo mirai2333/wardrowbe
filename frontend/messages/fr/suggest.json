@@ -77,6 +77,13 @@
     "title": "Tenue {occasion}",
     "viewItemDetails": "Voir les détails de l'article"
   },
+  "scope": {
+    "title": "Périmètre du dressing",
+    "subtitle": "Ne combiner que les vêtements d'un de vos groupes",
+    "none": "Tous les vêtements",
+    "active": "Uniquement les vêtements de « {name} » ({count})",
+    "empty": "Aucun groupe pour l'instant — créez-en un dans le dressing"
+  },
   "startOver": "Recommencer",
   "subtitle": "Trouvons la tenue parfaite pour votre journée",
   "tip": "Conseil :",

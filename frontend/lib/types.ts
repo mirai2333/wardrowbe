@@ -134,6 +134,27 @@ export interface ItemFilter {
   sort_by?: string;
   sort_order?: 'asc' | 'desc';
   ids?: string;
+  group_id?: string;
+}
+
+export interface ItemGroupPreview {
+  id: string;
+  name: string | null;
+  type: string;
+  thumbnail_url: string | null;
+}
+
+export interface ItemGroup {
+  id: string;
+  name: string;
+  item_count: number;
+  preview_items: ItemGroupPreview[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ItemGroupDetail extends ItemGroup {
+  item_ids: string[];
 }
 
 export interface StyleProfile {
@@ -381,6 +402,7 @@ export interface SuggestRequest {
   };
   exclude_items?: string[];
   include_items?: string[];
+  group_id?: string;
 }
 
 // Pairing types

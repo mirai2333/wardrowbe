@@ -147,6 +147,30 @@
     "noItemsFound": "No items found matching your filters."
   },
   "favorites": "Favorites",
+  "groups": {
+    "title": "Groups",
+    "description": "Group clothes once, then limit outfit suggestions to a group.",
+    "create": "New group",
+    "edit": "Edit",
+    "delete": "Delete",
+    "namePlaceholder": "e.g. Commute",
+    "itemCount": "{count} items",
+    "selectedCount": "{count} selected",
+    "empty": "No groups yet",
+    "all": "All clothes",
+    "manage": "Manage groups",
+    "editTitle": "Edit group",
+    "createTitle": "New group",
+    "editorDescription": "Name the group and pick the clothes in it.",
+    "save": "Save",
+    "cancel": "Cancel",
+    "saved": "Group saved",
+    "saveFailed": "Could not save the group",
+    "deleted": "Group deleted",
+    "deleteFailed": "Could not delete the group",
+    "deleteConfirm": "Delete \"{name}\"?",
+    "loadMembersFailed": "Could not load the group's clothes"
+  },
   "itemCount": "{count, plural, one {# item in your wardrobe} other {# items in your wardrobe}}",
   "itemDetail": {
     "actions": {

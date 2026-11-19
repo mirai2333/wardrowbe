@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Plus, Search, Heart, Grid3X3, Loader2, AlertCircle, RefreshCw, Droplets, ArrowUpDown, SlidersHorizontal, X } from 'lucide-react';
+import { Plus, Search, Heart, Grid3X3, Loader2, AlertCircle, RefreshCw, Droplets, ArrowUpDown, SlidersHorizontal, X, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -24,12 +24,14 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import { AddItemDialog } from '@/components/add-item-dialog';
+import { GroupManagerDialog } from '@/components/groups/group-manager-dialog';
 import { AnalysisQueuePanel } from '@/components/analysis-queue-panel';
 import { useAiUiEnabled } from '@/lib/hooks/use-features';
 import { ItemDetailDialog } from '@/components/item-detail-dialog';
 import { BulkActionToolbar, BulkSelection } from '@/components/bulk-action-toolbar';
 import { useItems, useItem, useItemTypes, useReanalyzeItem, useCancelAnalysis, useBulkDeleteItems, useBulkReanalyzeItems, useBulkCancelAnalysis, useBulkRotateItems, useBulkRemoveBackgroundItems, useRemoveBackground, useTaggingProgress, BulkItemFilters, BulkOperationParams, tagProcessingLabel, formatAnalyzingElapsed, deriveQueueSummary } from '@/lib/hooks/use-items';
 import { useUserTimezone } from '@/lib/hooks/use-user';
+import { useGroups } from '@/lib/hooks/use-groups';
 import { colorSwatch, normalizeColor } from '@/lib/colors';
 import { Item } from '@/lib/types';
 import { useClothingTypes, useClothingColors, useSubtypeLabel, useTypeLabel } from '@/lib/hooks/use-translated-constants';
@@ -350,6 +352,9 @@ export default function WardrobePage() {
   const [favoriteFilter, setFavoriteFilter] = useState<boolean | undefined>(() =>
     searchParams.get('favorite') === 'true' ? true : undefined
   );
+  const [groupFilter, setGroupFilter] = useState<string | null>(() => searchParams.get('group'));
+  const [groupDialogOpen, setGroupDialogOpen] = useState(false);
+  const { data: groups } = useGroups();
   const [showFilters, setShowFilters] = useState(false);
   const [page, setPage] = useState(() => {
     const raw = Number(searchParams.get('page'));
@@ -397,6 +402,7 @@ export default function WardrobePage() {
     if (sortIndex !== 0) params.set('sort', String(sortIndex)); else params.delete('sort');
     if (needsWash) params.set('needsWash', 'true'); else params.delete('needsWash');
     if (favoriteFilter) params.set('favorite', 'true'); else params.delete('favorite');
+    if (groupFilter) params.set('group', groupFilter); else params.delete('group');
     if (page !== 1) params.set('page', String(page)); else params.delete('page');
     if (pageSize !== DEFAULT_PAGE_SIZE) params.set('pageSize', String(pageSize)); else params.delete('pageSize');
 
@@ -404,7 +410,7 @@ export default function WardrobePage() {
     if (next !== searchParams.toString()) {
       router.replace(next ? `/dashboard/wardrobe?${next}` : '/dashboard/wardrobe', { scroll: false });
     }
-  }, [search, typeFilter, sortIndex, needsWash, favoriteFilter, page, pageSize, searchParams, router]);
+  }, [search, typeFilter, sortIndex, needsWash, favoriteFilter, groupFilter, page, pageSize, searchParams, router]);
 
   const sortOption = SORT_OPTIONS[sortIndex];
 
@@ -414,6 +420,7 @@ export default function WardrobePage() {
     needs_wash: needsWash,
     favorite: favoriteFilter,
     is_archived: false,
+    group_id: groupFilter ?? undefined,
   };
   const filters = { ...listFilters, sort_by: sortOption.value, sort_order: sortOption.order };
 
@@ -421,6 +428,7 @@ export default function WardrobePage() {
     needsWash !== undefined,
     favoriteFilter !== undefined,
     typeFilter !== 'all',
+    groupFilter !== null,
   ].filter(Boolean).length;
 
   // Fetch items with automatic polling (faster when items are processing)
@@ -799,6 +807,37 @@ export default function WardrobePage() {
             </Select>
 
             <Select
+              value={groupFilter ?? 'all'}
+              onValueChange={(value) => {
+                setGroupFilter(value === 'all' ? null : value);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="w-[160px] h-8 text-xs">
+                <Layers className="h-3.5 w-3.5 mr-1.5 shrink-0" />
+                <SelectValue placeholder={t('groups.all')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('groups.all')}</SelectItem>
+                {(groups ?? []).map((group) => (
+                  <SelectItem key={group.id} value={group.id}>
+                    {group.name} ({group.item_count})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 text-xs gap-1.5"
+              onClick={() => setGroupDialogOpen(true)}
+            >
+              <Layers className="h-3.5 w-3.5" />
+              {t('groups.manage')}
+            </Button>
+
+            <Select
               value={String(pageSize)}
               onValueChange={(value) => {
                 setPageSize(Number(value));
@@ -852,6 +891,7 @@ export default function WardrobePage() {
                   setTypeFilter('all');
                   setNeedsWash(undefined);
                   setFavoriteFilter(undefined);
+                  setGroupFilter(null);
                   setPage(1);
                 }}
               >
@@ -951,6 +991,7 @@ export default function WardrobePage() {
       />
 
       <AddItemDialog open={addDialogOpen} onOpenChange={setAddDialogOpen} />
+      <GroupManagerDialog open={groupDialogOpen} onOpenChange={setGroupDialogOpen} />
       {aiUiEnabled && (
         <AnalysisQueuePanel
           open={queuePanelOpen}

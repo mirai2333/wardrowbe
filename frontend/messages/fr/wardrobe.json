@@ -147,6 +147,30 @@
     "noItemsFound": "Aucun article trouvé correspondant à vos filtres."
   },
   "favorites": "Favoris",
+  "groups": {
+    "title": "Groupes",
+    "description": "Regroupez vos vêtements, puis limitez les suggestions à un groupe.",
+    "create": "Nouveau groupe",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "namePlaceholder": "ex. Travail",
+    "itemCount": "{count} articles",
+    "selectedCount": "{count} sélectionnés",
+    "empty": "Aucun groupe pour l'instant",
+    "all": "Tous les vêtements",
+    "manage": "Gérer les groupes",
+    "editTitle": "Modifier le groupe",
+    "createTitle": "Nouveau groupe",
+    "editorDescription": "Nommez le groupe et choisissez les vêtements qu'il contient.",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "saved": "Groupe enregistré",
+    "saveFailed": "Impossible d'enregistrer le groupe",
+    "deleted": "Groupe supprimé",
+    "deleteFailed": "Impossible de supprimer le groupe",
+    "deleteConfirm": "Supprimer « {name} » ?",
+    "loadMembersFailed": "Impossible de charger les vêtements du groupe"
+  },
   "itemCount": "{count, plural, one {# article dans votre garde-robe} other {# articles dans votre garde-robe}}",
   "itemDetail": {
     "actions": {

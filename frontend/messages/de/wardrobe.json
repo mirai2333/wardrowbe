@@ -147,6 +147,30 @@
     "noItemsFound": "Keine Stücke zu deinen Filtern gefunden."
   },
   "favorites": "Favoriten",
+  "groups": {
+    "title": "Gruppen",
+    "description": "Kleidung einmal gruppieren und Outfit-Vorschläge auf eine Gruppe beschränken.",
+    "create": "Neue Gruppe",
+    "edit": "Bearbeiten",
+    "delete": "Löschen",
+    "namePlaceholder": "z. B. Arbeit",
+    "itemCount": "{count} Kleidungsstücke",
+    "selectedCount": "{count} ausgewählt",
+    "empty": "Noch keine Gruppen",
+    "all": "Alle Kleidung",
+    "manage": "Gruppen verwalten",
+    "editTitle": "Gruppe bearbeiten",
+    "createTitle": "Neue Gruppe",
+    "editorDescription": "Benenne die Gruppe und wähle ihre Kleidung aus.",
+    "save": "Speichern",
+    "cancel": "Abbrechen",
+    "saved": "Gruppe gespeichert",
+    "saveFailed": "Gruppe konnte nicht gespeichert werden",
+    "deleted": "Gruppe gelöscht",
+    "deleteFailed": "Gruppe konnte nicht gelöscht werden",
+    "deleteConfirm": "\"{name}\" löschen?",
+    "loadMembersFailed": "Kleidung der Gruppe konnte nicht geladen werden"
+  },
   "itemCount": "{count, plural, one {# Stück in deinem Kleiderschrank} other {# Stücke in deinem Kleiderschrank}}",
   "itemDetail": {
     "actions": {

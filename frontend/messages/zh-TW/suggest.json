@@ -77,6 +77,13 @@
     "title": "{occasion} 穿搭",
     "viewItemDetails": "查看單品詳情"
   },
+  "scope": {
+    "title": "推薦範圍",
+    "subtitle": "只在一個分組的衣服裡搭配",
+    "none": "全部衣服",
+    "active": "只會在「{name}」的 {count} 件裡搭配",
+    "empty": "還沒有分組，去衣櫥裡建立一個"
+  },
   "startOver": "重新開始",
   "subtitle": "為你的一天找到完美穿搭",
   "tip": "提示：",

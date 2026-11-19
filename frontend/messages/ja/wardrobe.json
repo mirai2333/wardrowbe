@@ -147,6 +147,30 @@
     "noItemsFound": "フィルターに一致するアイテムが見つかりません。"
   },
   "favorites": "お気に入り",
+  "groups": {
+    "title": "グループ",
+    "description": "服をグループに分けて、そのグループ内だけでコーデを提案します。",
+    "create": "グループを作成",
+    "edit": "編集",
+    "delete": "削除",
+    "namePlaceholder": "例：通勤",
+    "itemCount": "{count} 点",
+    "selectedCount": "{count} 点選択中",
+    "empty": "グループはまだありません",
+    "all": "すべての服",
+    "manage": "グループを管理",
+    "editTitle": "グループを編集",
+    "createTitle": "グループを作成",
+    "editorDescription": "グループ名を入力し、入れる服を選びます。",
+    "save": "保存",
+    "cancel": "キャンセル",
+    "saved": "グループを保存しました",
+    "saveFailed": "グループを保存できませんでした",
+    "deleted": "グループを削除しました",
+    "deleteFailed": "グループを削除できませんでした",
+    "deleteConfirm": "「{name}」を削除しますか？",
+    "loadMembersFailed": "グループ内の服を読み込めませんでした"
+  },
   "itemCount": "{count, plural, one {ワードローブに# 件のアイテム} other {ワードローブに# 件のアイテム}}",
   "itemDetail": {
     "actions": {

@@ -147,6 +147,30 @@
     "noItemsFound": "没有找到符合筛选条件的单品。"
   },
   "favorites": "收藏",
+  "groups": {
+    "title": "分组",
+    "description": "先把衣服分好组，推荐时只在这个组里搭配。",
+    "create": "新建分组",
+    "edit": "编辑",
+    "delete": "删除",
+    "namePlaceholder": "例如：通勤",
+    "itemCount": "{count} 件",
+    "selectedCount": "已选 {count} 件",
+    "empty": "还没有分组",
+    "all": "全部衣服",
+    "manage": "管理分组",
+    "editTitle": "编辑分组",
+    "createTitle": "新建分组",
+    "editorDescription": "给分组起个名字，并挑选组里的衣服。",
+    "save": "保存",
+    "cancel": "取消",
+    "saved": "分组已保存",
+    "saveFailed": "保存分组失败",
+    "deleted": "分组已删除",
+    "deleteFailed": "删除分组失败",
+    "deleteConfirm": "删除「{name}」？",
+    "loadMembersFailed": "加载分组里的衣服失败"
+  },
   "itemCount": "{count, plural, one {衣柜中有 # 件单品} other {衣柜中有 # 件单品}}",
   "itemDetail": {
     "actions": {
