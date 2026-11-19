@@ -3,10 +3,6 @@ name: Docker Publish
 on:
   release:
     types: [published]
-  # The fork is the deployment source: every push to dev rebuilds the two images the home
-  # server pulls, so the server itself never needs a build toolchain or registry access.
-  push:
-    branches: [dev]
   workflow_call:
     inputs:
       version:
