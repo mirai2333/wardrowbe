@@ -58,6 +58,7 @@ from app.schemas.item import (
     TaggingProgressResponse,
     WashHistoryResponse,
 )
+from app.services.group_service import GroupNotFoundError, GroupService
 from app.services.image_service import ImageService
 from app.services.item_service import ItemService, TagVocabularyError
 from app.utils.auth import get_current_user
@@ -149,7 +150,17 @@ async def list_items(
     search: str | None = None,
     sort_by: str | None = None,
     sort_order: str = "desc",
+    group_id: UUID | None = None,
 ) -> ItemListResponse:
+    if group_id is not None:
+        # A group id from another account must not silently fall through to the whole wardrobe.
+        try:
+            await GroupService(db).get_for_user(current_user.id, group_id)
+        except GroupNotFoundError:
+            raise HTTPException(
+                status_code=404, detail="Group not found"
+            ) from None
+
     color_list = colors.split(",") if colors else None
 
     filters = ItemFilter(
@@ -164,6 +175,7 @@ async def list_items(
         search=search,
         sort_by=sort_by,
         sort_order=sort_order,
+        group_id=group_id,
     )
 
     item_service = ItemService(db)

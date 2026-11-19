@@ -31,6 +31,7 @@ from app.schemas.outfit import (
 )
 from app.services.ai_service import AIDisabledError
 from app.services.external_outfit_service import ExternalOutfitService
+from app.services.group_service import GroupNotFoundError, GroupService
 from app.services.item_service import ItemService
 from app.services.learning_service import LearningService
 from app.services.outfit_service import OutfitListFilters, OutfitService, parse_enum_csv
@@ -97,6 +98,36 @@ class SuggestRequest(BaseModel):
     weather_override: WeatherOverrideRequest | None = None
     exclude_items: list[UUID] = Field(default_factory=list, description="Items to exclude")
     include_items: list[UUID] = Field(default_factory=list, description="Items to include")
+    group_id: UUID | None = Field(
+        default=None,
+        description="Limit the suggestion to the members of this wardrobe group",
+    )
+
+
+async def _group_eligible_items(
+    db: DbSession, user: User, group_id: UUID | None
+) -> list[UUID] | None:
+    """Resolve an optional group into the item ids a suggestion may draw from.
+
+    None means the caller did not pick a group, so the whole wardrobe stays available; an empty
+    group is a 400 instead of a silent fall back, because the user asked for a limit.
+    """
+    if group_id is None:
+        return None
+
+    try:
+        item_ids = await GroupService(db).eligible_item_ids(user.id, group_id)
+    except GroupNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
+        ) from None
+
+    if not item_ids:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This group has no items yet. Add clothes to it before generating.",
+        )
+    return item_ids
 
 
 class OutfitItemResponse(BaseModel):
@@ -440,6 +471,7 @@ async def suggest_outfit(
 ) -> OutfitResponse:
     await rate_limit_by_user(str(current_user.id), "suggest", max_requests=10, window_seconds=60)
     weather_override = request.weather_override.to_weather() if request.weather_override else None
+    eligible_items = await _group_eligible_items(db, current_user, request.group_id)
 
     service = RecommendationService(db)
 
@@ -452,6 +484,7 @@ async def suggest_outfit(
             weather_override=weather_override,
             exclude_items=request.exclude_items,
             include_items=request.include_items,
+            eligible_items=eligible_items,
             time_of_day=request.time_of_day,
         )
     except InsufficientWardrobeError as e:
@@ -492,6 +525,7 @@ async def suggest_outfit_options(
 ) -> list[OutfitResponse]:
     await rate_limit_by_user(str(current_user.id), "suggest", max_requests=10, window_seconds=60)
     weather_override = request.weather_override.to_weather() if request.weather_override else None
+    eligible_items = await _group_eligible_items(db, current_user, request.group_id)
 
     service = RecommendationService(db)
 
@@ -504,6 +538,7 @@ async def suggest_outfit_options(
             weather_override=weather_override,
             exclude_items=request.exclude_items,
             include_items=request.include_items,
+            eligible_items=eligible_items,
             time_of_day=request.time_of_day,
             count=3,
         )

@@ -1,4 +1,5 @@
 from app.models.family import Family, FamilyInvite
+from app.models.group import ItemGroup, ItemGroupMember
 from app.models.identity import UserIdentity
 from app.models.item import ClothingItem, ItemHistory, ItemImage, WashHistory
 from app.models.learning import (
@@ -26,6 +27,8 @@ __all__ = [
     "NotificationSettings",
     "Schedule",
     "ClothingItem",
+    "ItemGroup",
+    "ItemGroupMember",
     "ItemHistory",
     "ItemImage",
     "WashHistory",

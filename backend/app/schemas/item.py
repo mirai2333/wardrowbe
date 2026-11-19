@@ -220,6 +220,8 @@ class ItemFilterFields(BaseModel):
     needs_wash: bool | None = None
     is_archived: bool = False
     search: str | None = None
+    # Restricts the list to members of one user-owned wardrobe group.
+    group_id: UUID | None = None
 
 
 class ItemFilter(ItemFilterFields):

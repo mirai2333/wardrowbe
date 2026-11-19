@@ -15,6 +15,7 @@ from app.utils.locale import DEFAULT_LOCALE
 
 if TYPE_CHECKING:
     from app.models.family import Family
+    from app.models.group import ItemGroup
     from app.models.item import ClothingItem
     from app.models.learning import UserLearningProfile
     from app.models.notification import NotificationSettings
@@ -78,6 +79,9 @@ class User(Base):
     )
     clothing_items: Mapped[list["ClothingItem"]] = relationship(
         "ClothingItem", back_populates="user", cascade="all, delete-orphan"
+    )
+    item_groups: Mapped[list["ItemGroup"]] = relationship(
+        "ItemGroup", back_populates="user", cascade="all, delete-orphan"
     )
     outfits: Mapped[list["Outfit"]] = relationship(
         "Outfit", back_populates="user", cascade="all, delete-orphan"

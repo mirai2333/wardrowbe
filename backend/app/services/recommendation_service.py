@@ -206,6 +206,7 @@ class RecommendationService:
         occasion: str,
         preferences: UserPreference | None,
         exclude_items: list[UUID],
+        eligible_items: list[UUID] | None = None,
     ) -> list[ClothingItem]:
         query = select(ClothingItem).where(
             and_(
@@ -223,6 +224,12 @@ class RecommendationService:
 
         items = [i for i in items if not i.needs_wash]
         items = [i for i in items if i.type and i.type != "unknown"]
+
+        # None means "no group selected"; an empty list means the group holds nothing usable,
+        # which must stay empty instead of silently falling back to the whole wardrobe.
+        if eligible_items is not None:
+            eligible_set = set(eligible_items)
+            items = [i for i in items if i.id in eligible_set]
 
         if exclude_items:
             exclude_set = set(exclude_items)
@@ -766,6 +773,7 @@ class RecommendationService:
         weather_override: WeatherData | None = None,
         exclude_items: list[UUID] | None = None,
         include_items: list[UUID] | None = None,
+        eligible_items: list[UUID] | None = None,
         source: OutfitSource = OutfitSource.on_demand,
         time_of_day: TimeOfDay | None = None,
         count: int = 1,
@@ -777,12 +785,16 @@ class RecommendationService:
 
         exclude_items = exclude_items or []
         include_items = include_items or []
+        # None means no wardrobe group constrains this generation; an empty list is a group that
+        # holds nothing and must yield no candidates rather than fall back to the wardrobe.
+        eligible_item_ids = list(eligible_items) if eligible_items is not None else None
 
         if not time_of_day:
             time_of_day = get_time_of_day(user)
 
-        # Determine cache eligibility before auto-merge
-        use_cache = not exclude_items and not single_outfit
+        # Determine cache eligibility before auto-merge. A group changes the candidate pool, and
+        # its contents can change between two requests, so cached suggestions are not reused.
+        use_cache = not exclude_items and not eligible_item_ids and not single_outfit
 
         # Auto-exclude today's rejected items for this occasion
         rejected_ids = await self._get_today_rejected_item_ids(user, occasion)
@@ -835,6 +847,7 @@ class RecommendationService:
             occasion=occasion,
             preferences=preferences,
             exclude_items=exclude_items,
+            eligible_items=eligible_item_ids,
         )
 
         # Force-include specific items
@@ -879,6 +892,12 @@ class RecommendationService:
                     "The selected items cannot make a complete outfit with the rest of your "
                     "wardrobe."
                 )
+
+        if eligible_item_ids is not None and not can_complete_outfit([], item_type_map):
+            raise ValueError(
+                "This group cannot make a complete outfit yet. Add at least a top, "
+                "a bottom or footwear."
+            )
 
         # Check cache for pre-generated suggestions (used when count is 1)
         if use_cache and count == 1:
@@ -1106,6 +1125,7 @@ class RecommendationService:
         weather_override: WeatherData | None = None,
         exclude_items: list[UUID] | None = None,
         include_items: list[UUID] | None = None,
+        eligible_items: list[UUID] | None = None,
         source: OutfitSource = OutfitSource.on_demand,
         time_of_day: TimeOfDay | None = None,
         single_outfit: bool = False,
@@ -1117,6 +1137,7 @@ class RecommendationService:
             weather_override=weather_override,
             exclude_items=exclude_items,
             include_items=include_items,
+            eligible_items=eligible_items,
             source=source,
             time_of_day=time_of_day,
             count=1,

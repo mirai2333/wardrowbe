@@ -6,6 +6,7 @@ from sqlalchemy import and_, func, or_, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import attributes, selectinload
 
+from app.models.group import ItemGroupMember
 from app.models.item import (
     TAG_COLUMNS,
     ClothingItem,
@@ -130,6 +131,14 @@ class ItemService:
             clauses.append(ClothingItem.colors.overlap(filters.colors))
         if filters.needs_wash is not None:
             clauses.append(ClothingItem.needs_wash == filters.needs_wash)
+        if filters.group_id is not None:
+            clauses.append(
+                ClothingItem.id.in_(
+                    select(ItemGroupMember.item_id).where(
+                        ItemGroupMember.group_id == filters.group_id
+                    )
+                )
+            )
         if filters.search:
             search_term = f"%{filters.search}%"
             clauses.append(
